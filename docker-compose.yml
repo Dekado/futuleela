@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+
+  # Web Server Service
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_shopfans
+    ports:
+      - "8080:80"
+    volumes:
+      - ./source:/var/www
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    depends_on:
+      - app
+      - mysql
+
+  #Database Service
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    restart: always
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>
+      - "3306:3306"
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: "blog"
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "password"
+      MYSQL_ROOT_PASSWORD: "password"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: "phpmyadmin"
+    restart: always
+    ports:
+      - 9090:80
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+
+  #db:
+  #  image: postgres
+  #  container_name: postgres
+  #  volumes:
+  #    - ./postgresql/data:/var/lib/postgresql/data
+  #  ports:
+  #    - "5432:5432"
+  #  environment:
+  #    POSTGRES_DB: project
+  #    POSTGRES_USER: root
+  #    POSTGRES_PASSWORD: password
+
+  # Application Service
+  app:
+    container_name: shopfanstest
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    volumes:
+      - ./source:/var/www
+    ports:
+      - "9000:9000"
+    working_dir: /var/www
+
+  #pgadmin:
+  #  image: dpage/pgadmin4
+  #  container_name: pgAdmin
+  #  ports:
+  #    - "5050:80"
+  #  depends_on:
+  #    - db
+  #  environment:
+  #    PGADMIN_DEFAULT_EMAIL: test@test1111.com
+  #    PGADMIN_DEFAULT_PASSWORD: qwerty
